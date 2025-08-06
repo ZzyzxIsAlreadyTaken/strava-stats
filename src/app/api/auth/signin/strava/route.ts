@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
 function getBaseUrl() {
-  // In production, use the VERCEL_URL or similar environment variable
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  // Prioritize AUTH_URL if set (for custom domains)
+  if (process.env.AUTH_URL) {
+    return process.env.AUTH_URL;
   }
 
   // In development, use localhost
@@ -11,8 +11,13 @@ function getBaseUrl() {
     return "http://localhost:3000";
   }
 
-  // Fallback for other environments
-  return process.env.AUTH_URL || "http://localhost:3000";
+  // Fallback to VERCEL_URL if no AUTH_URL is set
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Final fallback
+  return "http://localhost:3000";
 }
 
 export async function GET() {
