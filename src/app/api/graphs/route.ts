@@ -5,11 +5,11 @@ import { formatDistance, formatTime } from "@/lib/strava-api";
 // Define proper types for activities and grouped data
 interface Activity {
   id: string;
-  name: string;
-  type: string;
-  distance: number;
-  movingTime: number;
-  startDate: string;
+  name: string | null;
+  type: string | null;
+  distance: number | null;
+  movingTime: number | null;
+  startDate: Date | null;
 }
 
 interface GroupedActivityData {
@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
 
       // Get activities for each friend
       for (const friend of friends) {
+        if (!friend.friendId) continue;
         const friendActivities = await getUserActivities(
           friend.friendId,
           1,
@@ -96,8 +97,8 @@ export async function GET(request: NextRequest) {
             period
           );
           friendsData.push({
-            friendId: friend.friendId,
-            friendName: friend.friendName,
+            friendId: friend.friendId || "",
+            friendName: friend.friendName || "",
             data: friendData,
           });
         }
