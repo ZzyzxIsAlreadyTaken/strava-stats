@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  console.log("OAuth callback started");
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");
+
+  console.log("Callback URL:", request.url);
+  console.log("Code received:", !!code);
+  console.log("Error received:", error);
 
   if (error) {
     console.error("OAuth error:", error);
@@ -25,6 +30,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/?error=no_code", baseUrl));
   }
 
+  console.log("Starting token exchange...");
+
   try {
     // Exchange code for tokens
     const tokenResponse = await fetch("https://www.strava.com/oauth/token", {
@@ -41,7 +48,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
-      console.error("Token exchange failed:", await tokenResponse.text());
+      const errorText = await tokenResponse.text();
+      console.error("Token exchange failed:", errorText);
       const baseUrl =
         process.env.AUTH_URL ||
         (process.env.VERCEL_URL
@@ -53,6 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenData = await tokenResponse.json();
+    console.log("Token exchange successful");
 
     // Get athlete info
     const athleteResponse = await fetch(
