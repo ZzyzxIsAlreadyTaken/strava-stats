@@ -1,57 +1,148 @@
 import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import ActivitiesList from "@/components/ActivitiesList";
 import FriendsList from "@/components/FriendsList";
 import ActivityGraph from "@/components/ActivityGraph";
 
 async function getSession() {
   try {
-    const headersList = await headers();
-    const response = await fetch(`http://localhost:3000/api/auth/session`, {
-      headers: headersList,
-    });
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("strava_access_token");
+    const athleteId = cookieStore.get("strava_athlete_id");
 
-    if (response.ok) {
-      return await response.json();
+    if (!accessToken || !athleteId) {
+      return { user: null };
     }
+
+    // Verify the token is still valid by fetching athlete data
+    const athleteResponse = await fetch(
+      "https://www.strava.com/api/v3/athlete",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken.value}`,
+        },
+      }
+    );
+
+    if (!athleteResponse.ok) {
+      return { user: null };
+    }
+
+    const athlete = await athleteResponse.json();
+
+    return {
+      user: {
+        id: athlete.id.toString(),
+        name: `${athlete.firstname} ${athlete.lastname}`,
+        image: athlete.profile,
+      },
+      accessToken: accessToken.value,
+    };
   } catch (error) {
     console.error("Error fetching session:", error);
+    return { user: null };
   }
-
-  return null;
 }
 
 async function getStats() {
   try {
-    const headersList = await headers();
-    const response = await fetch(`http://localhost:3000/api/stats`, {
-      headers: headersList,
-    });
+    const cookieStore = await cookies();
+    const athleteId = cookieStore.get("strava_athlete_id");
 
-    if (response.ok) {
-      return await response.json();
+    if (!athleteId) {
+      return null;
     }
+
+    // Import the database functions directly
+    const { getUserActivities } = await import("@/lib/db");
+    const { calculateStats, formatDistance, formatTime } = await import(
+      "@/lib/strava-api"
+    );
+
+    // Get user activities from database
+    const activities = await getUserActivities(athleteId.value, 1, 10);
+    const allActivities = await getUserActivities(athleteId.value, 1, 10000);
+
+    // Convert database activities to StravaActivity format for stats
+    const stravaActivities = allActivities.map((activity) => ({
+      id: parseInt(activity.id),
+      name: activity.name || "",
+      type: activity.type || "",
+      distance: activity.distance || 0,
+      moving_time: activity.movingTime || 0,
+      start_date: activity.startDate?.toISOString() || "",
+      total_elevation_gain: 0,
+      average_speed: 0,
+      max_speed: 0,
+    }));
+
+    // Calculate stats
+    const stats = calculateStats(stravaActivities);
+
+    // Filter and transform activities to match expected format
+    const validActivities = activities
+      .filter((activity) => activity.name && activity.startDate)
+      .map((activity) => ({
+        id: activity.id,
+        name: activity.name!,
+        startDate: activity.startDate!.toISOString(),
+        distance: activity.distance || 0,
+        movingTime: activity.movingTime || 0,
+      }));
+
+    return {
+      stats: {
+        totalActivities: stats.totalActivities,
+        totalDistance: formatDistance(stats.totalDistance),
+        totalTime: formatTime(stats.totalTime),
+        averageDistance: formatDistance(stats.averageDistance),
+        averageTime: formatTime(stats.averageTime),
+      },
+      activities: validActivities,
+      pagination: {
+        page: 1,
+        perPage: 10,
+        totalActivities: stats.totalActivities,
+        totalPages: Math.ceil(stats.totalActivities / 10),
+      },
+    };
   } catch (error) {
     console.error("Error fetching stats:", error);
+    return null;
   }
-
-  return null;
 }
 
 async function getFriends() {
   try {
-    const headersList = await headers();
-    const response = await fetch(`http://localhost:3000/api/friends`, {
-      headers: headersList,
-    });
+    const cookieStore = await cookies();
+    const athleteId = cookieStore.get("strava_athlete_id");
 
-    if (response.ok) {
-      return await response.json();
+    if (!athleteId) {
+      return { friends: [] };
     }
+
+    // Import the database functions directly
+    const { getUserFriends } = await import("@/lib/db");
+
+    // Get user's friends
+    const friends = await getUserFriends(athleteId.value);
+
+    // Filter out null values and transform to expected format
+    const validFriends = friends
+      .filter((friend) => friend.friendId && friend.friendName)
+      .map((friend) => ({
+        id: friend.id,
+        friendId: friend.friendId!,
+        friendName: friend.friendName!,
+        friendImage: friend.friendImage || "",
+        createdAt: friend.createdAt?.toISOString() || new Date().toISOString(),
+      }));
+
+    return { friends: validFriends };
   } catch (error) {
     console.error("Error fetching friends:", error);
+    return { friends: [] };
   }
-
-  return { friends: [] };
 }
 
 export default async function Home() {

@@ -6,6 +6,21 @@ interface StravaProfile {
   profile: string;
 }
 
+function getBaseUrl() {
+  // In production, use the VERCEL_URL or similar environment variable
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // In development, use localhost
+  if (process.env.NODE_ENV === "development") {
+    return "http://localhost:3000";
+  }
+
+  // Fallback for other environments
+  return process.env.NEXTAUTH_URL || "http://localhost:3000";
+}
+
 export const strava: OAuthConfig<StravaProfile> = {
   id: "strava",
   name: "Strava",
@@ -17,7 +32,7 @@ export const strava: OAuthConfig<StravaProfile> = {
     params: {
       client_id: process.env.STRAVA_CLIENT_ID,
       response_type: "code",
-      redirect_uri: process.env.STRAVA_REDIRECT_URI,
+      redirect_uri: `${getBaseUrl()}/api/auth/callback/strava`,
       approval_prompt: "auto",
       scope: "read,activity:read_all",
     },

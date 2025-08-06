@@ -77,7 +77,11 @@ export default function ActivitiesList({
                     {activity.name}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {new Date(activity.startDate).toLocaleDateString()}
+                    {new Date(activity.startDate).toLocaleDateString("nb-NO", {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
                   </div>
                 </div>
                 <div className="text-right">

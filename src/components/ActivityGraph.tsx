@@ -126,7 +126,11 @@ export default function ActivityGraph({ initialData }: ActivityGraphProps) {
             day: "numeric",
           });
         default:
-          return date.toLocaleDateString();
+          return date.toLocaleDateString("nb-NO", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
       }
     }
   });

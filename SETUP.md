@@ -4,11 +4,12 @@
 
 Create a `.env.local` file in your project root with the following variables:
 
+> **Note**: The app uses server-side data fetching with cookies for authentication and direct database calls for data, eliminating the need for internal API requests. For OAuth redirects, it dynamically detects the base URL using environment variables like `VERCEL_URL` or `NEXTAUTH_URL`.
+
 ```env
 # Strava OAuth Configuration
 STRAVA_CLIENT_ID=your_strava_client_id
 STRAVA_CLIENT_SECRET=your_strava_client_secret
-STRAVA_REDIRECT_URI=http://localhost:3000/api/auth/callback/strava
 
 # Auth Configuration
 AUTH_SECRET=your_auth_secret_key_here
@@ -16,7 +17,7 @@ AUTH_SECRET=your_auth_secret_key_here
 # Database Configuration
 DATABASE_URL=your_neon_database_url
 
-# App Configuration
+# App Configuration (optional - will be auto-detected)
 NEXTAUTH_URL=http://localhost:3000
 ```
 
@@ -35,7 +36,11 @@ NEXTAUTH_URL=http://localhost:3000
 3. **Generate AUTH_SECRET**:
    - Run `openssl rand -base64 32` to generate a secure secret
 
-4. **Start the development server**:
+4. **Configure Strava App**:
+   - Set the Authorization Callback Domain to `localhost` for development
+   - For production, set it to your domain (e.g., `yourdomain.com`)
+
+5. **Start the development server**:
    - Run `npm run dev`
 
 ## Next Steps

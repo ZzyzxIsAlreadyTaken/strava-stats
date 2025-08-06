@@ -16,6 +16,8 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+> **Note**: The app uses server-side data fetching with cookies for authentication and direct database calls for data, eliminating the need for internal API requests. For OAuth redirects, it dynamically detects the base URL using environment variables like `VERCEL_URL` or `NEXTAUTH_URL`.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -1,15 +1,15 @@
 import { redirect } from "next/navigation";
-import { Auth } from "@auth/core";
-import { strava } from "@/lib/strava-provider";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  const authResponse = await Auth(
-    new Request("http://localhost:3000/api/auth/signout"),
-    {
-      providers: [strava],
-      secret: process.env.AUTH_SECRET,
-    }
+  // Clear the session cookies
+  const response = NextResponse.redirect(
+    new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000")
   );
 
-  return redirect("/");
+  response.cookies.delete("strava_access_token");
+  response.cookies.delete("strava_refresh_token");
+  response.cookies.delete("strava_athlete_id");
+
+  return response;
 }
