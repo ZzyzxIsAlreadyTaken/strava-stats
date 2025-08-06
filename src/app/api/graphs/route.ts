@@ -2,6 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserActivities, getUserFriends } from "@/lib/db";
 import { formatDistance, formatTime } from "@/lib/strava-api";
 
+// Define proper types for activities and grouped data
+interface Activity {
+  id: string;
+  name: string;
+  type: string;
+  distance: number;
+  movingTime: number;
+  startDate: string;
+}
+
+interface GroupedActivityData {
+  date: string;
+  totalDistance: number;
+  totalTime: number;
+  activityCount: number;
+  activities: Activity[];
+}
+
+interface FriendData {
+  friendId: string;
+  friendName: string;
+  data: GroupedActivityData[];
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get athlete ID from cookies
@@ -46,7 +70,7 @@ export async function GET(request: NextRequest) {
     // Group activities by date based on period
     const userData = groupActivitiesByPeriod(filteredUserActivities, period);
 
-    let friendsData: any[] = [];
+    const friendsData: FriendData[] = [];
 
     if (includeFriends) {
       // Get user's friends
@@ -95,8 +119,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function groupActivitiesByPeriod(activities: any[], period: string) {
-  const grouped: { [key: string]: any } = {};
+function groupActivitiesByPeriod(
+  activities: Activity[],
+  period: string
+): GroupedActivityData[] {
+  const grouped: { [key: string]: GroupedActivityData } = {};
 
   activities.forEach((activity) => {
     if (!activity.startDate) return;
