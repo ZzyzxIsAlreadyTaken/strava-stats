@@ -4,7 +4,7 @@
 
 Create a `.env.local` file in your project root with the following variables:
 
-> **Note**: The app uses server-side data fetching with cookies for authentication and direct database calls for data, eliminating the need for internal API requests. For OAuth redirects, it dynamically detects the base URL using environment variables like `VERCEL_URL` or `NEXTAUTH_URL`.
+> **Note**: The app uses server-side data fetching with cookies for authentication and direct database calls for data, eliminating the need for internal API requests. For OAuth redirects, it dynamically detects the base URL using environment variables like `VERCEL_URL` or `AUTH_URL`. The `STRAVA_REDIRECT_URI` environment variable is no longer needed as it's generated dynamically.
 
 ```env
 # Strava OAuth Configuration
@@ -18,7 +18,7 @@ AUTH_SECRET=your_auth_secret_key_here
 DATABASE_URL=your_neon_database_url
 
 # App Configuration (optional - will be auto-detected)
-NEXTAUTH_URL=http://localhost:3000
+AUTH_URL=http://localhost:3000
 ```
 
 ## Setup Steps

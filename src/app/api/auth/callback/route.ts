@@ -7,12 +7,18 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("OAuth error:", error);
-    return NextResponse.redirect(new URL("/?error=oauth_error", request.url));
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.AUTH_URL || "http://localhost:3000";
+    return NextResponse.redirect(new URL("/?error=oauth_error", baseUrl));
   }
 
   if (!code) {
     console.error("No authorization code received");
-    return NextResponse.redirect(new URL("/?error=no_code", request.url));
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.AUTH_URL || "http://localhost:3000";
+    return NextResponse.redirect(new URL("/?error=no_code", baseUrl));
   }
 
   try {
@@ -32,8 +38,11 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       console.error("Token exchange failed:", await tokenResponse.text());
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.AUTH_URL || "http://localhost:3000";
       return NextResponse.redirect(
-        new URL("/?error=token_exchange_failed", request.url)
+        new URL("/?error=token_exchange_failed", baseUrl)
       );
     }
 
@@ -51,16 +60,22 @@ export async function GET(request: NextRequest) {
 
     if (!athleteResponse.ok) {
       console.error("Failed to fetch athlete data");
+      const baseUrl = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : process.env.AUTH_URL || "http://localhost:3000";
       return NextResponse.redirect(
-        new URL("/?error=athlete_fetch_failed", request.url)
+        new URL("/?error=athlete_fetch_failed", baseUrl)
       );
     }
 
     const athlete = await athleteResponse.json();
 
     // Store session data in cookies (simple approach)
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.AUTH_URL || "http://localhost:3000";
     const response = NextResponse.redirect(
-      new URL("/?authenticated=true", request.url)
+      new URL("/?authenticated=true", baseUrl)
     );
 
     // Set cookies with session data
@@ -86,8 +101,9 @@ export async function GET(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("OAuth callback error:", error);
-    return NextResponse.redirect(
-      new URL("/?error=callback_error", request.url)
-    );
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.AUTH_URL || "http://localhost:3000";
+    return NextResponse.redirect(new URL("/?error=callback_error", baseUrl));
   }
 }

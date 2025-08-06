@@ -18,7 +18,7 @@ function getBaseUrl() {
   }
 
   // Fallback for other environments
-  return process.env.NEXTAUTH_URL || "http://localhost:3000";
+  return process.env.AUTH_URL || "http://localhost:3000";
 }
 
 export const strava: OAuthConfig<StravaProfile> = {

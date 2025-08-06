@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function GET() {
   // Clear the session cookies
   const response = NextResponse.redirect(
-    new URL("/", process.env.NEXTAUTH_URL || "http://localhost:3000")
+    new URL("/", process.env.AUTH_URL || "http://localhost:3000")
   );
 
   response.cookies.delete("strava_access_token");
