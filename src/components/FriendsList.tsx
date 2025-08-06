@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Image from "next/image";
 
 interface Friend {
   id: string;
@@ -104,7 +105,7 @@ export default function FriendsList({ initialFriends }: FriendsListProps) {
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Friend's Strava ID
+                Friend&apos;s Strava ID
               </label>
               <input
                 type="text"
@@ -116,13 +117,13 @@ export default function FriendsList({ initialFriends }: FriendsListProps) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Friend's Name
+                Friend&apos;s Name
               </label>
               <input
                 type="text"
                 value={newFriendName}
                 onChange={(e) => setNewFriendName(e.target.value)}
-                placeholder="Enter friend's name"
+                placeholder="Enter friend&apos;s name"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -150,9 +151,11 @@ export default function FriendsList({ initialFriends }: FriendsListProps) {
             >
               <div className="flex items-center gap-3">
                 {friend.friendImage && (
-                  <img
+                  <Image
                     src={friend.friendImage}
                     alt={friend.friendName}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full"
                   />
                 )}

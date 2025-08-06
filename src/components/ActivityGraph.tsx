@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,27 +10,34 @@ import {
   Title,
   Tooltip,
   Legend,
-  BarElement,
 } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
+import { Line } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  BarElement,
   Title,
   Tooltip,
   Legend
 );
+
+interface Activity {
+  id: string;
+  name: string;
+  type: string;
+  distance: number;
+  movingTime: number;
+  startDate: string;
+}
 
 interface ActivityData {
   date: string;
   totalDistance: number;
   totalTime: number;
   activityCount: number;
-  activities: any[];
+  activities: Activity[];
 }
 
 interface GraphData {
@@ -50,14 +57,14 @@ interface ActivityGraphProps {
 
 export default function ActivityGraph({ initialData }: ActivityGraphProps) {
   const [data, setData] = useState<GraphData | null>(initialData || null);
+  const [loading, setLoading] = useState(!initialData);
   const [period, setPeriod] = useState("month");
-  const [includeFriends, setIncludeFriends] = useState(false);
+  const [includeFriends, setIncludeFriends] = useState(true);
   const [graphType, setGraphType] = useState<"distance" | "time" | "count">(
     "distance"
   );
-  const [loading, setLoading] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -72,11 +79,11 @@ export default function ActivityGraph({ initialData }: ActivityGraphProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [period, includeFriends]);
 
   useEffect(() => {
     fetchData();
-  }, [period, includeFriends]);
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -253,7 +260,9 @@ export default function ActivityGraph({ initialData }: ActivityGraphProps) {
             <label className="text-sm font-medium text-gray-700">Metric:</label>
             <select
               value={graphType}
-              onChange={(e) => setGraphType(e.target.value as any)}
+              onChange={(e) =>
+                setGraphType(e.target.value as "distance" | "time" | "count")
+              }
               className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="distance">Distance</option>
