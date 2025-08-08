@@ -1,15 +1,22 @@
-import { redirect } from "next/navigation";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
-  // Clear the session cookies
-  const response = NextResponse.redirect(
-    new URL("/", process.env.AUTH_URL || "http://localhost:3000")
-  );
+export async function GET(request: NextRequest) {
+  const response = NextResponse.redirect(new URL("/", request.url));
 
-  response.cookies.delete("strava_access_token");
-  response.cookies.delete("strava_refresh_token");
-  response.cookies.delete("strava_athlete_id");
+  // Clear session cookies
+  response.cookies.set("strava_access_token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0, // Expire immediately
+  });
+
+  response.cookies.set("strava_athlete_id", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0, // Expire immediately
+  });
 
   return response;
 }

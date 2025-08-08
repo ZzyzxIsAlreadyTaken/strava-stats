@@ -1,5 +1,4 @@
-import { NextRequest } from "next/server";
-import { redirect } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -8,12 +7,12 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("OAuth error:", error);
-    return redirect("/?error=oauth_error");
+    return Response.redirect(new URL("/?error=oauth_error", request.url));
   }
 
   if (!code) {
     console.error("No authorization code received");
-    return redirect("/?error=no_code");
+    return Response.redirect(new URL("/?error=no_code", request.url));
   }
 
   try {
@@ -33,7 +32,9 @@ export async function GET(request: NextRequest) {
 
     if (!tokenResponse.ok) {
       console.error("Token exchange failed:", await tokenResponse.text());
-      return redirect("/?error=token_exchange_failed");
+      return Response.redirect(
+        new URL("/?error=token_exchange_failed", request.url)
+      );
     }
 
     const tokenData = await tokenResponse.json();
@@ -50,16 +51,34 @@ export async function GET(request: NextRequest) {
 
     if (!athleteResponse.ok) {
       console.error("Failed to fetch athlete data");
-      return redirect("/?error=athlete_fetch_failed");
+      return Response.redirect(
+        new URL("/?error=athlete_fetch_failed", request.url)
+      );
     }
 
     const athlete = await athleteResponse.json();
 
-    // For now, redirect to main page with success
-    // In a real app, you'd store the session securely
-    return redirect("/?authenticated=true");
+    // Store session data in cookies
+    const response = NextResponse.redirect(new URL("/", request.url));
+
+    // Set cookies with session data
+    response.cookies.set("strava_access_token", tokenData.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    response.cookies.set("strava_athlete_id", athlete.id.toString(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return response;
   } catch (error) {
     console.error("OAuth callback error:", error);
-    return redirect("/?error=callback_error");
+    return Response.redirect(new URL("/?error=callback_error", request.url));
   }
 }

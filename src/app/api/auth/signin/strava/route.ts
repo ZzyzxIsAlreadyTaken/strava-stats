@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
 function getBaseUrl() {
   // Prioritize AUTH_URL if set (for custom domains)
@@ -20,16 +20,16 @@ function getBaseUrl() {
   return "http://localhost:3000";
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const clientId = process.env.STRAVA_CLIENT_ID;
 
   if (!clientId) {
     console.error("Missing STRAVA_CLIENT_ID");
-    return redirect("/");
+    return Response.redirect(new URL("/", request.url));
   }
 
   const redirectUri = `${getBaseUrl()}/api/auth/callback/strava`;
   const stravaAuthUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&approval_prompt=auto&scope=read,activity:read_all`;
 
-  return redirect(stravaAuthUrl);
+  return Response.redirect(stravaAuthUrl);
 }
